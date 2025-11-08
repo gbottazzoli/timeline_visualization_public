@@ -2824,9 +2824,18 @@ function initializeTooltip() {
     const tooltip = document.getElementById('tooltip');
     if (tooltip) {
         tooltip.innerHTML = `
-            <div style="padding: 2rem; text-align: center; color: #666;">
-                <p style="margin: 0; font-size: 0.95rem; line-height: 1.6;">
-                    Sélectionnez un événement (point rouge ou bleu) ou une micro-action (point vert) pour voir le détail ici.
+            <div style="padding: 2rem; text-align: center; color: #333;">
+                <h3 style="margin: 0 0 1rem 0; color: #667eea; font-size: 1.3rem;">Bienvenue sur la Timeline Elisabeth Müller</h3>
+                <p style="margin: 0 0 1rem 0; font-size: 0.95rem; line-height: 1.6; color: #555;">
+                    Cette visualisation présente le parcours carcéral d'Elisabeth Müller (1941-1942)
+                    modélisé selon la méthodologie <strong>Triple Incertitude</strong> :
+                    3 timelines superposées (sources directes, vue diplomatique suisse, micro-actions),
+                    97 chaînes de communication et 2 trous informationnels identifiés.
+                </p>
+                <p style="margin: 0; font-size: 0.9rem; line-height: 1.6; color: #666;">
+                    <strong style="color: #667eea;">→</strong> Cliquez sur un point (<span style="color: #e74c3c;">●</span> rouge, <span style="color: #3498db;">●</span> bleu ou <span style="color: #2ecc71;">●</span> vert) pour voir les détails.<br>
+                    <strong style="color: #667eea;">→</strong> Explorez les <strong>Options</strong> pour filtrer les timelines.<br>
+                    <strong style="color: #667eea;">→</strong> Consultez les <strong>Définitions</strong> pour comprendre la méthodologie.
                 </p>
             </div>
         `;

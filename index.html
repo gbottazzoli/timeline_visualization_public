@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Timeline Elisabeth Müller 1941-1942 | Triple Incertitude</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.8rem 2rem;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .subtitle {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+
+        .methodology-badge {
+            display: none; /* Supprimé pour gagner de la place */
+        }
+
+        .container {
+            flex: 1;
+            padding: 1rem;
+            background: white;
+            overflow-x: scroll;
+            overflow-y: hidden;
+            /* Force scrollbar visibility */
+            scrollbar-width: thin; /* Firefox */
+            scrollbar-color: #667eea #e0e0e0; /* Firefox: thumb track */
+        }
+
+        /* Scrollbar horizontal de la timeline - Webkit (Chrome/Safari) */
+        .container::-webkit-scrollbar {
+            height: 14px;
+        }
+
+        .container::-webkit-scrollbar-track {
+            background: linear-gradient(to bottom, #f5f5f5, #e8e8e8);
+            border-radius: 10px;
+            margin: 0 10px;
+        }
+
+        .container::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #667eea, #764ba2);
+            border-radius: 10px;
+            border: 2px solid #f5f5f5;
+            transition: background 0.3s;
+        }
+
+        .container::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to bottom, #5569d8, #653a91);
+        }
+
+        .timeline {
+            position: relative;
+            min-height: calc(100vh - 80px - 400px);
+            display: inline-block;
+            vertical-align: top;
+        }
+
+        .event-marker {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s;
+            z-index: 10;
+        }
+
+        .event-marker:hover {
+            transform: scale(1.5);
+        }
+
+        .event-marker.selected {
+            transform: scale(1.4);
+            box-shadow: 0 0 0 3px #fff, 0 0 0 5px #667eea;
+            z-index: 200 !important;
+        }
+
+        .event-marker.t1 { background: #e74c3c; }
+        .event-marker.t2 { background: #3498db; }
+        .event-marker.t3 { background: #2ecc71; }
+        /* T4 supprimé */
+
+        .event-marker.gap {
+            background: #f39c12;
+            border: 2px solid #e67e22;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .uncertainty-bar {
+            position: absolute;
+            height: 4px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 2px;
+        }
+
+        .time-axis {
+            position: relative;
+            height: 40px;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .time-marker {
+            position: absolute;
+            top: 0;
+        }
+
+        .time-tick {
+            width: 1px;
+            background: #999;
+            margin-left: -0.5px;
+        }
+
+        .time-marker.year .time-tick {
+            height: 25px;
+            background: #333;
+            width: 2px;
+            margin-left: -1px;
+        }
+
+        .time-marker.month .time-tick {
+            height: 15px;
+            background: #ccc;
+        }
+
+        .time-label {
+            position: absolute;
+            top: 28px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.75rem;
+            white-space: nowrap;
+        }
+
+        .time-marker.year .time-label {
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: #333;
+        }
+
+        .time-marker.month .time-label {
+            font-size: 0.7rem;
+            color: #666;
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 3px solid #667eea;
+            height: 400px; /* Augmenté de 276px à 400px */
+            overflow-y: auto;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            /* Force scrollbar visibility */
+            scrollbar-width: thin; /* Firefox */
+            scrollbar-color: #667eea #e0e0e0; /* Firefox: thumb track */
+        }
+
+        /* Scrollbar vertical du footer - Webkit (Chrome/Safari) */
+        .footer::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        .footer::-webkit-scrollbar-track {
+            background: linear-gradient(to right, #f5f5f5, #e8e8e8);
+            border-radius: 10px;
+        }
+
+        .footer::-webkit-scrollbar-thumb {
+            background: linear-gradient(to right, #667eea, #764ba2);
+            border-radius: 10px;
+            border: 2px solid #f5f5f5;
+        }
+
+        .footer::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to right, #5569d8, #653a91);
+        }
+
+        .footer-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .footer-tab {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            font-size: 0.9rem;
+        }
+
+        .footer-tab.active {
+            background: white;
+            border-bottom-color: #667eea;
+            font-weight: bold;
+        }
+
+        .footer-content {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            /* Force scrollbar visibility */
+            scrollbar-width: thin; /* Firefox */
+            scrollbar-color: #667eea #e0e0e0; /* Firefox: thumb track */
+        }
+
+        /* Scrollbar vertical du footer-content - Webkit (Chrome/Safari) */
+        .footer-content::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        .footer-content::-webkit-scrollbar-track {
+            background: linear-gradient(to right, #f5f5f5, #e8e8e8);
+            border-radius: 10px;
+        }
+
+        .footer-content::-webkit-scrollbar-thumb {
+            background: linear-gradient(to right, #667eea, #764ba2);
+            border-radius: 10px;
+            border: 2px solid #f5f5f5;
+        }
+
+        .footer-content::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to right, #5569d8, #653a91);
+        }
+
+        .footer-section {
+            display: none;
+        }
+
+        .footer-section.active {
+            display: block;
+        }
+
+        .compact-controls {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            font-size: 0.85rem;
+        }
+
+        .compact-controls label {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .compact-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.8rem;
+        }
+
+        .compact-stat {
+            text-align: center;
+            padding: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .compact-stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .compact-stat-label {
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        .tooltip {
+            display: none;
+        }
+
+        .tooltip.visible {
+            display: block;
+        }
+
+        .tooltip-header {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #667eea;
+            color: #667eea;
+        }
+
+        .tooltip-section {
+            margin: 1rem 0;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .tooltip-section:last-child {
+            border-bottom: none;
+        }
+
+        .tooltip-label {
+            font-weight: 600;
+            color: #555;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tooltip-value {
+            margin-top: 0.25rem;
+            line-height: 1.6;
+        }
+
+        .quote-box {
+            background: #f8f9fa;
+            padding: 0.75rem;
+            border-left: 3px solid #667eea;
+            margin: 0.5rem 0;
+            font-style: italic;
+            font-size: 0.9rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin: 0.125rem;
+        }
+
+        .badge.high { background: #d4edda; color: #155724; }
+        .badge.medium { background: #fff3cd; color: #856404; }
+        .badge.low { background: #f8d7da; color: #721c24; }
+        .badge.swiss { background: #cce5ff; color: #004085; }
+        .badge.german { background: #f8d7da; color: #721c24; }
+        .badge.elisabeth { background: #d1ecf1; color: #0c5460; }
+
+        /* ========================================
+           RESPONSIVE DESIGN
+           ======================================== */
+
+        /* Mobile Portrait (< 768px) */
+        @media (max-width: 767px) {
+            .footer {
+                height: 250px !important;
+            }
+
+            .timeline {
+                min-height: calc(100vh - 80px - 250px) !important;
+            }
+
+            header {
+                padding: 0.6rem 1rem;
+            }
+
+            h1 {
+                font-size: 1.3rem;
+            }
+
+            .subtitle {
+                font-size: 0.75rem;
+            }
+
+            .footer-tabs {
+                font-size: 0.85rem;
+            }
+
+            .footer-tab {
+                padding: 0.6rem 0.8rem;
+            }
+        }
+
+        /* Mobile Landscape (< 896px en paysage) */
+        @media (max-width: 896px) and (orientation: landscape) {
+            .footer {
+                height: 180px !important;
+            }
+
+            .timeline {
+                min-height: calc(100vh - 60px - 180px) !important;
+            }
+
+            header {
+                padding: 0.4rem 1rem;
+            }
+
+            h1 {
+                font-size: 1.1rem;
+            }
+
+            .subtitle {
+                display: none; /* Gagner de la place en paysage */
+            }
+
+            .footer-tabs {
+                font-size: 0.8rem;
+            }
+
+            .footer-tab {
+                padding: 0.5rem 0.6rem;
+            }
+        }
+
+        /* Tablette Portrait (768px - 1023px) */
+        @media (min-width: 768px) and (max-width: 1023px) {
+            .footer {
+                height: 320px !important;
+            }
+
+            .timeline {
+                min-height: calc(100vh - 80px - 320px) !important;
+            }
+
+            h1 {
+                font-size: 1.4rem;
+            }
+        }
+
+        /* Tablette Landscape & Small Desktop (1024px - 1279px) */
+        @media (min-width: 1024px) and (max-width: 1279px) {
+            .footer {
+                height: 350px !important;
+            }
+
+            .timeline {
+                min-height: calc(100vh - 80px - 350px) !important;
+            }
+        }
+
+        /* Desktop Standard (>= 1280px) */
+        /* Utilise les valeurs par défaut (400px footer) */
+
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Timeline Elisabeth Müller</h1>
+        <div class="subtitle">Période 1941 - mi-1942 | Arrestation → Karlsruhe → Anrath</div>
+        <div>
+            <span class="methodology-badge">✓ Assertion-First</span>
+            <span class="methodology-badge">✓ Quote-First</span>
+            <span class="methodology-badge">✓ Triple Incertitude</span>
+        </div>
+    </header>
+
+    <div class="container">
+        <div id="timeline" class="timeline"></div>
+    </div>
+
+    <div class="footer">
+        <div class="footer-tabs">
+            <div class="footer-tab active" onclick="switchTab('tooltip', this)">Détails</div>
+            <div class="footer-tab" onclick="switchTab('controls', this)">Options</div>
+            <div class="footer-tab" onclick="switchTab('stats', this)">Statistiques</div>
+            <div class="footer-tab" onclick="switchTab('definitions', this)">Définitions</div>
+        </div>
+        <div class="footer-content">
+            <div id="tooltip-section" class="footer-section active">
+                <div id="tooltip"></div>
+            </div>
+
+            <div id="controls-section" class="footer-section">
+                <div style="padding: 0.5rem; overflow-y: auto; height: 100%;">
+                    <h3 style="color: #667eea; margin-bottom: 0.8rem;">Options d'affichage</h3>
+
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                        <thead>
+                            <tr style="background: #f5f5f5; border-bottom: 2px solid #ddd;">
+                                <th style="padding: 0.5rem; text-align: left; font-weight: 600; width: 25%;">Timelines</th>
+                                <th style="padding: 0.5rem; text-align: left; font-weight: 600; width: 35%;">Visualisation</th>
+                                <th style="padding: 0.5rem; text-align: left; font-weight: 600; width: 20%;">Filtres</th>
+                                <th style="padding: 0.5rem; text-align: left; font-weight: 600; width: 20%;">Mode analyse</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding: 0.8rem; vertical-align: top; border-right: 1px solid #e0e0e0;">
+                                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                        <label style="cursor: pointer;"><input type="checkbox" id="show-t1" checked> <span style="color: #e74c3c;">T1: Sources directes</span></label>
+                                        <label style="cursor: pointer;"><input type="checkbox" id="show-t2" checked> <span style="color: #3498db;">T2: Vue suisse</span></label>
+                                        <label style="cursor: pointer;"><input type="checkbox" id="show-t3" checked> <span style="color: #2ecc71;">T3: Micro-actions</span></label>
+                                    </div>
+                                </td>
+                                <td style="padding: 0.8rem; vertical-align: top; border-right: 1px solid #e0e0e0;">
+                                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                        <label style="cursor: pointer;" title="Affiche les liens visuels entre micro-actions connectées. Survolez un lien pour mettre en évidence la chaîne complète.">
+                                            <input type="checkbox" id="show-chains" checked>
+                                            Chaînes de communication T3
+                                            <span style="font-size: 0.75rem; color: #999;"> (focus au survol)</span>
+                                        </label>
+                                        <label style="cursor: pointer;"><input type="checkbox" id="show-uncertainty" checked> Incertitude temporelle</label>
+                                        <label style="cursor: pointer;"><input type="checkbox" id="highlight-gaps" checked> Trous informatifs</label>
+                                    </div>
+                                </td>
+                                <td style="padding: 0.8rem; vertical-align: top; border-right: 1px solid #e0e0e0;">
+                                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                        <label style="cursor: pointer;"><input type="checkbox" id="show-postwar"> Reconstitutions post-guerre (T2)</label>
+                                    </div>
+                                </td>
+                                <td style="padding: 0.8rem; vertical-align: top;">
+                                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                        <label style="cursor: pointer;">
+                                            <input type="checkbox" id="expand-sources">
+                                            Déplier sources T1/T2
+                                            <span style="font-size: 0.7rem; color: #999; display: block; margin-left: 1.2rem; margin-top: 0.2rem;">Métadonnées complètes</span>
+                                        </label>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div style="margin-top: 1rem; padding: 0.8rem; background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 4px;">
+                        <h4 style="color: #667eea; margin-bottom: 0.5rem; font-size: 0.9rem;">Gestion des labels T1</h4>
+                        <button id="resetLabelsBtn" style="padding: 0.5rem 1rem; background: #667eea; border: none; color: white; border-radius: 4px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s;">
+                            Réinitialiser positions des labels
+                        </button>
+                        <p style="font-size: 0.75rem; color: #666; margin-top: 0.5rem; margin-bottom: 0;">
+                            Rétablit le placement automatique des labels d'événements T1
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="stats-section" class="footer-section">
+                <div class="compact-stats" id="stats"></div>
+            </div>
+
+            <div id="definitions-section" class="footer-section">
+                <div style="overflow-y: auto; padding-right: 10px; height: 100%;">
+                    <h3 style="color: #667eea; margin-bottom: 1rem;">Légende - Visualisation du parcours carcéral d'Elisabeth Müller (1941-1945)</h3>
+
+                    <!-- PRINCIPES MÉTHODOLOGIQUES -->
+                    <div style="margin-bottom: 1.5rem; padding: 1rem; background: #f8f9fa; border-left: 3px solid #667eea;">
+                        <h4 style="color: #667eea; margin-bottom: 0.8rem; margin-top: 0;">Principes méthodologiques</h4>
+                        <div style="font-size: 0.9rem; line-height: 1.6;">
+                            <div style="margin: 0.5rem 0;">
+                                <strong>Assertion-First</strong><br>
+                                <span style="color: #555;">Chaque donnée visualisée est ancrée dans une assertion structurée, extraite et qualifiée selon trois dimensions d'incertitude.</span>
+                            </div>
+                            <div style="margin: 0.5rem 0;">
+                                <strong>Quote-First</strong><br>
+                                <span style="color: #555;">Chaque assertion contient sa citation textuelle source (couverture 100%). Accessible dans le tooltip de chaque événement pour garantir la traçabilité.</span>
+                            </div>
+                            <div style="margin: 0.5rem 0;">
+                                <strong>Triple Incertitude</strong><br>
+                                <span style="color: #555;">Modélisation de trois dimensions : épistémique (niveau de confiance), temporelle (précision des dates), et attributionnelle (type de source).</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STRUCTURE DES TROIS TIMELINES -->
+                    <div style="margin-bottom: 1.5rem;">
+                        <h4 style="color: #333; margin-bottom: 0.8rem;">Structure des trois timelines</h4>
+                        <div style="font-size: 0.9rem; line-height: 1.6;">
+                            <div style="margin: 0.8rem 0; padding: 0.7rem; background: #ffebee; border-left: 4px solid #e74c3c;">
+                                <strong style="color: #e74c3c;">T1 — Sources Directes</strong> (rouge)<br>
+                                <span style="color: #555; font-size: 0.85rem;">Événements attestés par observation directe, déclaration de la victime, ou documents contemporains officiels (registres de prison, rapports de visite). Uniquement haute confiance. Représente les "faits bruts" documentés hors du réseau diplomatique suisse.</span>
+                            </div>
+                            <div style="margin: 0.8rem 0; padding: 0.7rem; background: #e3f2fd; border-left: 4px solid #3498db;">
+                                <strong style="color: #3498db;">T2 — Vue Diplomatique Suisse</strong> (bleu/orange/noir)<br>
+                                <span style="color: #555; font-size: 0.85rem;">Événements tels que documentés par les autorités suisses (Archives fédérales). Représente la perspective et le niveau de connaissance des diplomates : ce qu'ils savent, quand ils le savent, et avec quelle certitude. Permet de mesurer l'écart avec T1.</span>
+                            </div>
+                            <div style="margin: 0.8rem 0; padding: 0.7rem; background: #e8f5e9; border-left: 4px solid #2ecc71;">
+                                <strong style="color: #2ecc71;">T3 — Micro-actions Diplomatiques</strong> (vert)<br>
+                                <span style="color: #555; font-size: 0.85rem;">Actions entreprises par les autorités suisses : correspondances, interventions politiques, démarches logistiques. Visualise l'intensité de l'activité diplomatique et les périodes de silence.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ENCODAGE VISUEL DE L'INCERTITUDE -->
+                    <div style="margin-bottom: 1.5rem;">
+                        <h4 style="color: #333; margin-bottom: 0.8rem;">Encodage visuel de l'incertitude</h4>
+
+                        <div style="margin: 1rem 0; padding: 0.8rem; background: #fafafa; border-radius: 4px;">
+                            <strong>1. Opacité = Confiance épistémique</strong>
+                            <div style="font-size: 0.85rem; margin-top: 0.5rem; color: #555;">
+                                Basée sur l'analyse linguistique de la formulation source :
+                            </div>
+                            <div style="font-size: 0.85rem; margin-left: 1rem; margin-top: 0.5rem; line-height: 1.6;">
+                                <div>• <strong>Opaque (100%)</strong> → Confiance élevée : langage affirmatif ("a été condamnée")</div>
+                                <div>• <strong>Semi-transparent (70%)</strong> → Confiance moyenne : ton neutre, rapport indirect ("selon les autorités...")</div>
+                                <div>• <strong>Très transparent (40%)</strong> → Confiance faible : conditionnel, doute ("aurait été", "soll... werden")</div>
+                            </div>
+                        </div>
+
+                        <div style="margin: 1rem 0; padding: 0.8rem; background: #fafafa; border-radius: 4px;">
+                            <strong>2. Forme temporelle = Précision de la date</strong>
+                            <div style="font-size: 0.85rem; margin-left: 1rem; margin-top: 0.5rem; line-height: 1.6;">
+                                <div>• <strong>Point unique</strong> → Date exacte connue (ex: "21 avril 1942 à 8h15")</div>
+                                <div>• <strong>Barre pleine</strong> → Intervalle attesté entre deux dates connues (ex: séjour confirmé du 21 au 28 avril)</div>
+                                <div>• <strong>Barre avec gradient orange→bleu</strong> → Période d'ignorance puis confirmation</div>
+                                <div style="margin-left: 1.5rem; font-size: 0.8rem; color: #666; font-style: italic;">
+                                    Exemple : Entre l'arrestation (date inconnue) et la première mention dans les archives
+                                </div>
+                                <div>• <strong>Barre courte (2-3 jours)</strong> → Écart annonce/réalisation</div>
+                                <div style="margin-left: 1.5rem; font-size: 0.8rem; color: #666; font-style: italic;">
+                                    Exemple : "devrait être transférée le 27 avril" vs arrivée réelle le 21 avril
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin: 1rem 0; padding: 0.8rem; background: #fafafa; border-radius: 4px;">
+                            <strong>3. Couleur (T2) = Type et fiabilité de la source</strong>
+                            <div style="font-size: 0.85rem; margin-left: 1rem; margin-top: 0.5rem; line-height: 1.6;">
+                                <div>• <span style="color: #3498db; font-weight: bold;">BLEU</span> → Sources fiables : confiance élevée + documents contemporains</div>
+                                <div>• <span style="color: #e67e22; font-weight: bold;">ORANGE</span> → Sources incertaines : confiance moyenne/faible ou incertitude sémantique</div>
+                                <div>• <span style="color: #2c3e50; font-weight: bold;">NOIR</span> → Reconstitutions d'après-guerre (Commission 1955-1962)</div>
+                                <div>• <strong>Bordure pointillée</strong> → Incertitude sémantique détectée dans le texte source</div>
+                                <div style="margin-left: 1.5rem; font-size: 0.8rem; color: #666; font-style: italic;">
+                                    Termes comme "vraisemblable", "möglich", "probablement"
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CHAÎNES DE COMMUNICATION -->
+                    <div style="margin-bottom: 1.5rem;">
+                        <h4 style="color: #333; margin-bottom: 0.8rem;">Chaînes de communication (T3)</h4>
+                        <div style="font-size: 0.9rem; line-height: 1.6; color: #555;">
+                            <p style="margin: 0.5rem 0;">Les micro-actions peuvent être reliées par des lignes courbes grises visualisant les flux de correspondances :</p>
+                            <div style="margin-left: 1rem; margin-top: 0.5rem;">
+                                <div style="margin: 0.3rem 0;">• <strong>Ligne pleine grise</strong> → Étape suivante dans une communication diplomatique (NEXT_IN_CHAIN)</div>
+                                <div style="margin: 0.3rem 0;">• <strong>Ligne pointillée violette</strong> → Réponse directe à une communication (REPLIES_TO)</div>
+                            </div>
+                            <p style="margin: 0.8rem 0 0.5rem 0; font-weight: 600;">Interaction :</p>
+                            <div style="margin-left: 1rem;">
+                                <div style="margin: 0.3rem 0;">Survolez un lien pour mettre en évidence la chaîne complète. Cliquez sur une micro-action pour voir les étapes précédentes/suivantes et le contexte événementiel.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ANNEXES -->
+                    <div style="margin-bottom: 1.5rem; padding-top: 1.5rem; border-top: 2px solid #ddd;">
+                        <h4 style="color: #666; margin-bottom: 1rem;">Annexes — Typologie des sources</h4>
+
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 1.5rem;">
+                            <thead>
+                                <tr style="background: #f5f5f5;">
+                                    <th style="padding: 0.6rem; border: 1px solid #ddd; text-align: left; font-weight: 600;">Type de source</th>
+                                    <th style="padding: 0.6rem; border: 1px solid #ddd; text-align: left; font-weight: 600;">Description</th>
+                                    <th style="padding: 0.6rem; border: 1px solid #ddd; text-align: left; font-weight: 600;">Statut épistémologique</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd;"><strong>Observation directe</strong></td>
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd;">Témoin oculaire (visite consulaire)</td>
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd;">Haute fiabilité, contemporain</td>
+                                </tr>
+                                <tr style="background: #fafafa;">
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd;"><strong>Déclaration victime</strong></td>
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd;">Lettre ou déclaration d'Elisabeth Müller</td>
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd;">Haute fiabilité, source primaire</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd;"><strong>Document contemporain</strong></td>
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd;">Registre officiel, certificat</td>
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd;">Haute fiabilité, administratif</td>
+                                </tr>
+                                <tr style="background: #fafafa;">
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd;"><strong>Rapporté</strong></td>
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd;">Information transmise par un tiers</td>
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd;">Fiabilité variable, indirect</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd;"><strong>Témoignage après-guerre</strong></td>
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd;">Témoignage recueilli après 1945</td>
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd;">Reconstruction, biais mémoriel</td>
+                                </tr>
+                                <tr style="background: #fafafa;">
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd;"><strong>Synthèse après-guerre</strong></td>
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd;">Rapport de la Commission (1955-62)</td>
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd;">Reconstruction interprétative</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h4 style="color: #666; margin-bottom: 1rem; margin-top: 1.5rem;">Annexes — Précision temporelle (date_precision)</h4>
+
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 1rem;">
+                            <thead>
+                                <tr style="background: #f5f5f5;">
+                                    <th style="padding: 0.6rem; border: 1px solid #ddd; text-align: left; font-weight: 600;">Valeur</th>
+                                    <th style="padding: 0.6rem; border: 1px solid #ddd; text-align: left; font-weight: 600;">Définition</th>
+                                    <th style="padding: 0.6rem; border: 1px solid #ddd; text-align: left; font-weight: 600;">Représentation visuelle</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd;"><code>exact</code></td>
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd;">Date précise connue</td>
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd;">Point unique</td>
+                                </tr>
+                                <tr style="background: #fafafa;">
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd;"><code>interval</code></td>
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd;">Période entre 2 dates connues</td>
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd;">Barre pleine (si &lt;6 mois)</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd;"><code>open_start</code></td>
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd;">Date de début inconnue, fin attestée</td>
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd;">Barre avec gradient (début incertain)</td>
+                                </tr>
+                                <tr style="background: #fafafa;">
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd;"><code>open_end</code></td>
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd;">Date de début connue, fin inconnue</td>
+                                    <td style="padding: 0.5rem; border: 1px solid #ddd;">Barre avec gradient (fin incertaine)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div style="padding: 0.8rem; background: #fffbea; border-left: 3px solid #f39c12; font-size: 0.85rem; color: #555; line-height: 1.5;">
+                            <strong>Note :</strong> Les intervalles longs (>6 mois) sont filtrés car considérés comme des reconstitutions synthétiques peu informatives pour l'analyse des flux d'information.
+                        </div>
+                    </div>
+
+                    <!-- UTILISATION -->
+                    <div style="margin-bottom: 1.5rem; padding: 1rem; background: #f0f7ff; border-left: 3px solid #3498db;">
+                        <h4 style="color: #3498db; margin-top: 0; margin-bottom: 0.8rem;">Utilisation de la visualisation</h4>
+                        <div style="font-size: 0.9rem; line-height: 1.6; color: #555;">
+                            Cette interface permet d'analyser :
+                            <ol style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                                <li style="margin: 0.3rem 0;"><strong>L'écart informationnel</strong> entre faits attestés (T1) et connaissance diplomatique (T2)</li>
+                                <li style="margin: 0.3rem 0;"><strong>Les contradictions temporelles</strong> (ex: transfert annoncé vs transfert réel)</li>
+                                <li style="margin: 0.3rem 0;"><strong>Les périodes de "brouillard informationnel"</strong> où l'activité diplomatique (T3) se poursuit malgré l'absence d'information fiable</li>
+                                <li style="margin: 0.3rem 0;"><strong>La nature des sources</strong> utilisées par les autorités suisses (directes vs rapportées)</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Bouton de réinitialisation des positions des labels
+        document.addEventListener('DOMContentLoaded', () => {
+            const resetBtn = document.getElementById('resetLabelsBtn');
+            if (resetBtn) {
+                resetBtn.addEventListener('mouseenter', () => {
+                    resetBtn.style.background = '#5569d8';
+                });
+                resetBtn.addEventListener('mouseleave', () => {
+                    resetBtn.style.background = '#667eea';
+                });
+                resetBtn.addEventListener('click', () => {
+                    localStorage.removeItem('t1LabelsPositions');
+                    location.reload();
+                });
+            }
+        });
+    </script>
+    <script src="timeline-final.js"></script>
+</body>
+</html>

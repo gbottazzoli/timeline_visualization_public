@@ -1,0 +1,18 @@
+# Fichiers système
+.DS_Store
+Thumbs.db
+*~
+
+# Editeurs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Fichiers temporaires
+*.tmp
+*.bak
+
+# PDF sources (non publiables)
+pdfs/
+*.pdf

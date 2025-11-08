@@ -1,0 +1,28 @@
+{
+  "information_gaps": [
+    {
+      "start_date": "1942-03-12",
+      "end_date": "1942-03-29",
+      "duration_days": 17,
+      "type": "critical",
+      "severity": "MEDIUM",
+      "label": "Trou informationnel (17j)",
+      "description": "Trou informationnel de 17 jours"
+    },
+    {
+      "start_date": "1942-05-12",
+      "end_date": "1942-06-04",
+      "duration_days": 23,
+      "type": "critical",
+      "severity": "MEDIUM",
+      "label": "Trou informationnel (23j)",
+      "description": "Trou informationnel de 23 jours"
+    }
+  ],
+  "metadata": {
+    "total_gaps": 2,
+    "period_start": "1942-03-01",
+    "period_end": "1942-06-30",
+    "detection_criteria": "Gaps > 10 jours avec faible/nulle activité T3"
+  }
+}

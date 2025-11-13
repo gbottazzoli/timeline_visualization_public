@@ -1,7 +1,7 @@
 # Timeline Elisabeth Müller - Visualisation Triple Incertitude
 
 **Version Production Ready** ✅
-**Date**: 2025-11-08
+**Date**: 2025-11-13
 
 Visualisation interactive du parcours carcéral d'Elisabeth Müller (1941-1945) avec encodage visuel de la triple incertitude (épistémique, temporelle, attributionnelle).
 
@@ -113,6 +113,7 @@ timeline_visualization/
 - **Survol lien communication** : Highlight de la chaîne complète
 - **Drag & drop labels** : Repositionnement manuel avec sauvegarde localStorage
 - **Bouton reset labels** : Rétablir placement automatique
+- **Resizer timeline/footer** : Ajuster manuellement la proportion entre visualisation et informations (drag vertical + localStorage)
 
 ---
 
@@ -199,6 +200,21 @@ Voir `archives/session_notes/` pour l'historique complet des corrections et amé
 
 ## ✅ Fonctionnalités Validées
 
+### Nouvelles fonctionnalités v1.3 (2025-11-13)
+- ✅ **Resizer manuel** : Barre draggable entre timeline et footer
+  - Support souris ET tactile (mobile/tablette)
+  - Persistance localStorage (hauteur sauvegardée)
+  - Contraintes min/max (150px minimum par zone)
+  - Responsive : s'adapte au redimensionnement fenêtre
+- ✅ **Correction erreur OCR** : 29.12.1941 → 29.03.1941 (arrestation Paris)
+  - Corrigé dans JSON (3 événements)
+  - Corrigé dans Neo4j (script automatique)
+- ✅ **Affichage événements post-guerre** : Points noirs visibles et empilés
+  - Détection via `is_postwar_reconstruction` + `evidence_type`
+  - Ordre empilement inversé : noirs AU-DESSUS des bleus
+  - Exception pour événements critiques (condamnation à mort)
+  - Déduplication intelligente : meilleur contemporain + TOUS post-guerre
+
 ### Corrections v1.2 (2025-11-08)
 - ✅ Filtrage documents post-guerre (38→70 avec toggle)
 - ✅ Déduplication condamnation à mort (3→2 points)
@@ -264,10 +280,15 @@ localStorage.removeItem('t2LabelsPositions');
 
 ## 🚀 Production Ready
 
-**Version** : 1.2
-**Date** : 2025-11-08
+**Version** : 1.3
+**Date** : 2025-11-13
 **Statut** : ✅ Production Ready
 **Conformité méthodologique** : 100%
+
+**Nouveautés v1.3** :
+- Resizer manuel timeline/footer
+- Correction erreur OCR dates arrestation
+- Affichage corrigé événements post-guerre (points noirs)
 
 ---
 

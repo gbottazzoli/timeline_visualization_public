@@ -1754,7 +1754,9 @@ function getTripleUncertaintyVisual(event, baseColor, type) {
         // Critère 1: date_precision = 'interval' ET durée > 6 mois
         // Critère 2: Post-guerre avec période longue dans description
 
-        const isPostwar = evidenceType.includes('postwar_summary') ||
+        // Utiliser d'abord is_postwar_reconstruction si disponible, sinon evidence_type
+        const isPostwar = event.is_postwar_reconstruction === true ||
+                         evidenceType.includes('postwar_summary') ||
                          evidenceType.includes('postwar_testimony') ||
                          evidenceType.includes('administrative_review');
 
@@ -1767,11 +1769,16 @@ function getTripleUncertaintyVisual(event, baseColor, type) {
                 const end = new Date(event.date_end);
                 const monthsDiff = (end - start) / (1000 * 60 * 60 * 24 * 30);
 
-                if (monthsDiff > 6) {
+                // EXCEPTION : Ne pas filtrer les événements critiques (condamnation à mort, grâce, etc.)
+                const isCriticalEvent = /condamn.*mort|death.*sentence|todesstrafe|grâce|gnade|commutation/.test(desc);
+
+                if (monthsDiff > 6 && !isCriticalEvent) {
                     console.log(`[SYNTHESIS DETECT] Interval long détecté: ${monthsDiff.toFixed(1)} mois (${event.date_start} → ${event.date_end})`);
                     console.log(`   Description: ${desc.substring(0, 80)}...`);
                     event._isSynthesisEvent = true;
                     event._synthesisReason = `Intervalle ${monthsDiff.toFixed(1)} mois`;
+                } else if (monthsDiff > 6 && isCriticalEvent) {
+                    console.log(`[SYNTHESIS SKIP] Événement critique conservé malgré interval long: ${desc.substring(0, 80)}`);
                 }
             }
 
@@ -2041,10 +2048,17 @@ function renderTrack(label, events, color, type, minDate, maxDate, segments, tra
                 assigned.add(i);
 
                 // Trouver tous les événements similaires
+                // EXCEPTION: Ne PAS dédupliquer les événements post-guerre entre eux (ils représentent différentes sources)
                 dateGroup.forEach((otherItem, j) => {
-                    if (i !== j && !assigned.has(j) && areSimilarEvents(item.event, otherItem.event)) {
-                        eventGroups[groupKey].push(otherItem);
-                        assigned.add(j);
+                    if (i !== j && !assigned.has(j)) {
+                        const bothPostwar = (item.event.is_postwar_reconstruction === true) &&
+                                          (otherItem.event.is_postwar_reconstruction === true);
+
+                        // Si les deux sont post-guerre, ne PAS les dédupliquer
+                        if (!bothPostwar && areSimilarEvents(item.event, otherItem.event)) {
+                            eventGroups[groupKey].push(otherItem);
+                            assigned.add(j);
+                        }
                     }
                 });
             });
@@ -2072,7 +2086,8 @@ function renderTrack(label, events, color, type, minDate, maxDate, segments, tra
             const precision = item.event.date_precision || '';
 
             const mentionsLaSante = desc.includes('santé') || desc.includes('sante');
-            const isContemporary = !evidenceType.includes('postwar_summary') &&
+            const isContemporary = item.event.is_postwar_reconstruction !== true &&
+                                  !evidenceType.includes('postwar_summary') &&
                                   !evidenceType.includes('postwar_testimony') &&
                                   !evidenceType.includes('administrative_review');
 
@@ -2159,8 +2174,19 @@ function renderTrack(label, events, color, type, minDate, maxDate, segments, tra
                 return precB - precA;
             });
 
-            // Garder uniquement le premier (meilleure qualité)
-            eventsToRender.push(group[0]);
+            // Séparer contemporains et post-guerre dans le groupe
+            const contemporaryInGroup = group.filter(item => item.event.is_postwar_reconstruction !== true);
+            const postwarInGroup = group.filter(item => item.event.is_postwar_reconstruction === true);
+
+            // Garder le MEILLEUR contemporain (déjà trié)
+            if (contemporaryInGroup.length > 0) {
+                eventsToRender.push(contemporaryInGroup[0]);
+            }
+
+            // Garder TOUS les post-guerre (empilés verticalement)
+            postwarInGroup.forEach(item => {
+                eventsToRender.push(item);
+            });
         });
     } else if (type === 't3') {
         // CAS 3: T3 - garder tous les événements sans déduplication
@@ -2214,17 +2240,19 @@ function renderTrack(label, events, color, type, minDate, maxDate, segments, tra
                 const evidenceA = a.event.evidence_type || '';
                 const evidenceB = b.event.evidence_type || '';
 
-                const isPostwarA = evidenceA.includes('postwar_summary') ||
+                const isPostwarA = a.event.is_postwar_reconstruction === true ||
+                                   evidenceA.includes('postwar_summary') ||
                                    evidenceA.includes('postwar_testimony') ||
                                    evidenceA.includes('administrative_review');
 
-                const isPostwarB = evidenceB.includes('postwar_summary') ||
+                const isPostwarB = b.event.is_postwar_reconstruction === true ||
+                                   evidenceB.includes('postwar_summary') ||
                                    evidenceB.includes('postwar_testimony') ||
                                    evidenceB.includes('administrative_review');
 
-                // Postwar en dernier (au-dessus visuellement)
-                if (isPostwarA && !isPostwarB) return 1;
-                if (!isPostwarA && isPostwarB) return -1;
+                // Postwar EN PREMIER pour être AU-DESSUS visuellement (stackIndex plus petit = yPos plus petit = plus haut)
+                if (isPostwarA && !isPostwarB) return -1;
+                if (!isPostwarA && isPostwarB) return 1;
                 return 0;
             });
         });
@@ -2255,7 +2283,8 @@ function renderTrack(label, events, color, type, minDate, maxDate, segments, tra
                 // Filtrer les postwar selon le toggle
                 if (!showPostwar) {
                     const evidenceType = item.event.evidence_type || '';
-                    const isPostwar = evidenceType.includes('postwar_summary') ||
+                    const isPostwar = item.event.is_postwar_reconstruction === true ||
+                                     evidenceType.includes('postwar_summary') ||
                                      evidenceType.includes('postwar_testimony') ||
                                      evidenceType.includes('administrative_review');
                     if (isPostwar) {
@@ -2924,7 +2953,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// Fonction pour afficher la modale PDF (VERSION PUBLIQUE - Sans accès aux PDF)
+// Fonction pour afficher la modale PDF
 function showPDFModal(pdfFilename) {
     // Créer la modale si elle n'existe pas
     let modal = document.getElementById('pdf-modal');
@@ -2934,34 +2963,18 @@ function showPDFModal(pdfFilename) {
         modal.style.cssText = 'display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; align-items: center; justify-content: center;';
 
         const modalContent = document.createElement('div');
-        modalContent.style.cssText = 'background: white; max-width: 600px; width: 90%; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); display: flex; flex-direction: column;';
+        modalContent.style.cssText = 'background: white; width: 90%; height: 90%; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); display: flex; flex-direction: column;';
 
         const header = document.createElement('div');
-        header.style.cssText = 'padding: 1rem; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; background: #fff3cd;';
-        header.innerHTML = '<h3 style="margin: 0; font-size: 1rem; color: #856404;" id="pdf-modal-title">⚠️ Document source non disponible</h3><button id="pdf-modal-close" style="background: #667eea; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">Fermer</button>';
+        header.style.cssText = 'padding: 1rem; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center;';
+        header.innerHTML = '<h3 style="margin: 0; font-size: 1rem;" id="pdf-modal-title">Document PDF</h3><button id="pdf-modal-close" style="background: #dc3545; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">Fermer</button>';
 
-        const warningContainer = document.createElement('div');
-        warningContainer.id = 'pdf-warning';
-        warningContainer.style.cssText = 'padding: 2rem; text-align: center;';
-        warningContainer.innerHTML = `
-            <div style="font-size: 3rem; margin-bottom: 1rem;">📄</div>
-            <h4 style="margin: 0 0 1rem 0; color: #333;">Document archivistique</h4>
-            <p style="color: #666; line-height: 1.6; margin-bottom: 1.5rem;">
-                Les PDF des sources archivistiques ne peuvent pas être publiés en ligne pour des raisons de droits d'auteur et de protection des archives.
-            </p>
-            <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; border-left: 3px solid #667eea;">
-                <p style="margin: 0; font-size: 0.9rem; color: #555;">
-                    <strong>Document demandé :</strong><br>
-                    <span id="pdf-filename" style="font-family: monospace; color: #667eea;"></span>
-                </p>
-            </div>
-            <p style="margin-top: 1.5rem; font-size: 0.85rem; color: #999;">
-                Pour consulter les sources originales, veuillez contacter les Archives fédérales suisses.
-            </p>
-        `;
+        const iframeContainer = document.createElement('div');
+        iframeContainer.style.cssText = 'flex: 1; overflow: hidden;';
+        iframeContainer.innerHTML = '<iframe id="pdf-iframe" style="width: 100%; height: 100%; border: none;"></iframe>';
 
         modalContent.appendChild(header);
-        modalContent.appendChild(warningContainer);
+        modalContent.appendChild(iframeContainer);
         modal.appendChild(modalContent);
         document.body.appendChild(modal);
 
@@ -2972,8 +2985,9 @@ function showPDFModal(pdfFilename) {
         });
     }
 
-    // Mettre à jour le nom du fichier dans le warning
-    document.getElementById('pdf-filename').textContent = pdfFilename;
+    // Mettre à jour le titre et l'iframe
+    document.getElementById('pdf-modal-title').textContent = pdfFilename;
+    document.getElementById('pdf-iframe').src = `/pdfs/${encodeURIComponent(pdfFilename)}`;
 
     // Afficher la modale
     modal.style.display = 'flex';
@@ -2983,5 +2997,6 @@ function closePDFModal() {
     const modal = document.getElementById('pdf-modal');
     if (modal) {
         modal.style.display = 'none';
+        document.getElementById('pdf-iframe').src = ''; // Arrêter le chargement
     }
 }

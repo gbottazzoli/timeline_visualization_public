@@ -180,6 +180,29 @@
             color: #666;
         }
 
+        /* Resizer draggable pour ajuster la hauteur du footer */
+        .resizer {
+            position: fixed;
+            bottom: 400px; /* Synchronisé avec la hauteur par défaut du footer */
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(to bottom, transparent, #667eea, transparent);
+            cursor: ns-resize;
+            z-index: 1001;
+            transition: background 0.2s, height 0.2s;
+        }
+
+        .resizer:hover {
+            height: 8px;
+            background: linear-gradient(to bottom, rgba(102, 126, 234, 0.3), #667eea, rgba(102, 126, 234, 0.3));
+        }
+
+        .resizer.dragging {
+            height: 8px;
+            background: linear-gradient(to bottom, rgba(102, 126, 234, 0.5), #764ba2, rgba(102, 126, 234, 0.5));
+        }
+
         .footer {
             position: fixed;
             bottom: 0;
@@ -382,11 +405,15 @@
         /* Mobile Portrait (< 768px) */
         @media (max-width: 767px) {
             .footer {
-                height: 250px !important;
+                height: 250px;
             }
 
             .timeline {
-                min-height: calc(100vh - 80px - 250px) !important;
+                min-height: calc(100vh - 80px - 250px);
+            }
+
+            .resizer {
+                bottom: 250px;
             }
 
             header {
@@ -413,11 +440,15 @@
         /* Mobile Landscape (< 896px en paysage) */
         @media (max-width: 896px) and (orientation: landscape) {
             .footer {
-                height: 180px !important;
+                height: 180px;
             }
 
             .timeline {
-                min-height: calc(100vh - 60px - 180px) !important;
+                min-height: calc(100vh - 60px - 180px);
+            }
+
+            .resizer {
+                bottom: 180px;
             }
 
             header {
@@ -444,11 +475,15 @@
         /* Tablette Portrait (768px - 1023px) */
         @media (min-width: 768px) and (max-width: 1023px) {
             .footer {
-                height: 320px !important;
+                height: 320px;
             }
 
             .timeline {
-                min-height: calc(100vh - 80px - 320px) !important;
+                min-height: calc(100vh - 80px - 320px);
+            }
+
+            .resizer {
+                bottom: 320px;
             }
 
             h1 {
@@ -459,11 +494,15 @@
         /* Tablette Landscape & Small Desktop (1024px - 1279px) */
         @media (min-width: 1024px) and (max-width: 1279px) {
             .footer {
-                height: 350px !important;
+                height: 350px;
             }
 
             .timeline {
-                min-height: calc(100vh - 80px - 350px) !important;
+                min-height: calc(100vh - 80px - 350px);
+            }
+
+            .resizer {
+                bottom: 350px;
             }
         }
 
@@ -486,6 +525,9 @@
     <div class="container">
         <div id="timeline" class="timeline"></div>
     </div>
+
+    <!-- Resizer pour ajuster manuellement la hauteur du footer -->
+    <div class="resizer" id="resizer"></div>
 
     <div class="footer">
         <div class="footer-tabs">
@@ -789,6 +831,124 @@
                     location.reload();
                 });
             }
+
+            // ==============================================================
+            // RESIZER - Ajustement manuel de la hauteur du footer
+            // ==============================================================
+            const resizer = document.getElementById('resizer');
+            const footer = document.querySelector('.footer');
+            const timeline = document.querySelector('.timeline');
+
+            // Contraintes min/max pour éviter des valeurs absurdes
+            const MIN_FOOTER_HEIGHT = 150; // Minimum 150px
+            const MAX_FOOTER_HEIGHT = window.innerHeight - 150; // Maximum = hauteur viewport - 150px pour la timeline
+
+            // Charger la hauteur sauvegardée depuis localStorage
+            function loadFooterHeight() {
+                const savedHeight = localStorage.getItem('footerHeight');
+                if (savedHeight) {
+                    const height = parseInt(savedHeight, 10);
+                    if (height >= MIN_FOOTER_HEIGHT && height <= MAX_FOOTER_HEIGHT) {
+                        applyFooterHeight(height);
+                    }
+                }
+            }
+
+            // Appliquer la hauteur au footer et au resizer
+            function applyFooterHeight(height) {
+                footer.style.height = `${height}px`;
+                resizer.style.bottom = `${height}px`;
+                // Mettre à jour le min-height de la timeline
+                const headerHeight = document.querySelector('header').offsetHeight;
+                timeline.style.minHeight = `calc(100vh - ${headerHeight}px - ${height}px)`;
+            }
+
+            // Sauvegarder la hauteur dans localStorage
+            function saveFooterHeight(height) {
+                localStorage.setItem('footerHeight', height);
+            }
+
+            // Gestion du drag
+            let isDragging = false;
+            let startY = 0;
+            let startHeight = 0;
+
+            resizer.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                startY = e.clientY;
+                startHeight = footer.offsetHeight;
+                resizer.classList.add('dragging');
+                document.body.style.cursor = 'ns-resize';
+                document.body.style.userSelect = 'none'; // Empêcher la sélection de texte pendant le drag
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+
+                // Calculer la nouvelle hauteur (souris monte = footer grandit)
+                const deltaY = startY - e.clientY;
+                let newHeight = startHeight + deltaY;
+
+                // Appliquer les contraintes
+                newHeight = Math.max(MIN_FOOTER_HEIGHT, Math.min(newHeight, MAX_FOOTER_HEIGHT));
+
+                applyFooterHeight(newHeight);
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    resizer.classList.remove('dragging');
+                    document.body.style.cursor = '';
+                    document.body.style.userSelect = '';
+
+                    // Sauvegarder la hauteur finale
+                    saveFooterHeight(footer.offsetHeight);
+                }
+            });
+
+            // Support tactile pour mobile/tablette
+            resizer.addEventListener('touchstart', (e) => {
+                isDragging = true;
+                startY = e.touches[0].clientY;
+                startHeight = footer.offsetHeight;
+                resizer.classList.add('dragging');
+                e.preventDefault();
+            });
+
+            document.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+
+                const deltaY = startY - e.touches[0].clientY;
+                let newHeight = startHeight + deltaY;
+
+                newHeight = Math.max(MIN_FOOTER_HEIGHT, Math.min(newHeight, MAX_FOOTER_HEIGHT));
+
+                applyFooterHeight(newHeight);
+            });
+
+            document.addEventListener('touchend', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    resizer.classList.remove('dragging');
+                    saveFooterHeight(footer.offsetHeight);
+                }
+            });
+
+            // Charger la hauteur sauvegardée au démarrage
+            loadFooterHeight();
+
+            // Recalculer la hauteur max lors du redimensionnement de la fenêtre
+            window.addEventListener('resize', () => {
+                const currentHeight = footer.offsetHeight;
+                const newMaxHeight = window.innerHeight - 150;
+
+                if (currentHeight > newMaxHeight) {
+                    applyFooterHeight(newMaxHeight);
+                    saveFooterHeight(newMaxHeight);
+                }
+            });
         });
     </script>
     <script src="timeline-final.js"></script>
